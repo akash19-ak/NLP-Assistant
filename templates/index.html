@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Word Predictor & Dictionary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <i class="fas fa-brain logo-icon"></i>
+                <h2>NLP Assistant</h2>
+            </div>
+            <nav>
+                <button class="nav-item active" onclick="openTab('prediction', event)">
+                    <i class="fas fa-magic"></i>
+                    <span>Word Prediction</span>
+                </button>
+                <button class="nav-item" onclick="openTab('synonym', event)">
+                    <i class="fas fa-book"></i>
+                    <span>Synonym Lookup</span>
+                </button>
+                <button class="nav-item" onclick="openTab('antonym', event)">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Antonym Lookup</span>
+                </button>
+                <button class="nav-item" onclick="openTab('frame', event)">
+                    <i class="fas fa-pen-fancy"></i>
+                    <span>Sentence Framer</span>
+                </button>
+                <button class="nav-item" onclick="openTab('categorize', event)">
+                    <i class="fas fa-tags"></i>
+                    <span>Word Categorizer</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Powered by AKASH</p>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1 id="page-title">Word Prediction</h1>
+            </div>
+
+            <!-- Word Prediction Tab -->
+            <div id="prediction" class="tab-content active">
+                <div class="chat-container">
+                    <div class="messages" id="prediction-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>Hello! I can predict what words might come next in your sentence. Try typing a phrase below.</p>
+                            </div>
+                        </div>
+                        
+                        {% if generated_text and request.form.get('action') == 'generate' %}
+                        <div class="message user">
+                            <div class="message-content">
+                                <p>{{ request.form.get('prompt') }}</p>
+                            </div>
+                        </div>
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <p>Here are some possible next words:</p>
+                                <ul class="result-list">
+                                    {% for word in generated_text %}
+                                    <li><span class="highlight">{{ word }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-area">
+                        <form method="post" class="input-form">
+                            <input type="text" name="prompt" placeholder="Enter a phrase..." required>
+                            <input type="hidden" name="action" value="generate">
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Synonym Lookup Tab -->
+            <div id="synonym" class="tab-content">
+                <div class="chat-container">
+                    <div class="messages" id="synonym-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>I can find synonyms and example sentences for any word. Enter a word below to get started.</p>
+                            </div>
+                        </div>
+                        
+                        {% if (synonyms or examples) and request.form.get('action') == 'synonym' %}
+                        <div class="message user">
+                            <div class="message-content">
+                                <p>{{ request.form.get('word') }}</p>
+                            </div>
+                        </div>
+                        <div class="message assistant">
+                            <div class="message-content">
+                                {% if synonyms %}
+                                <p><strong>Synonyms:</strong></p>
+                                <ul class="result-list">
+                                    {% for synonym in synonyms %}
+                                    <li><span class="highlight">{{ synonym }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if examples %}
+                                <p><strong>Example Sentences:</strong></p>
+                                <ul class="result-list examples">
+                                    {% for example in examples %}
+                                    <li>{{ example }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-area">
+                        <form method="post" class="input-form">
+                            <input type="text" name="word" placeholder="Enter a word..." required>
+                            <input type="hidden" name="action" value="synonym">
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Antonym Lookup Tab -->
+            <div id="antonym" class="tab-content">
+                <div class="chat-container">
+                    <div class="messages" id="antonym-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>I can find antonyms (opposites) for any word. Enter a word below to get started.</p>
+                            </div>
+                        </div>
+                        
+                        {% if antonyms and request.form.get('action') == 'antonym' %}
+                        <div class="message user">
+                            <div class="message-content">
+                                <p>{{ request.form.get('word') }}</p>
+                            </div>
+                        </div>
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <p><strong>Antonyms:</strong></p>
+                                <ul class="result-list">
+                                    {% for antonym in antonyms %}
+                                    <li><span class="highlight">{{ antonym }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-area">
+                        <form method="post" class="input-form">
+                            <input type="text" name="word" placeholder="Enter a word..." required>
+                            <input type="hidden" name="action" value="antonym">
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentence Framer Tab -->
+            <div id="frame" class="tab-content">
+                <div class="chat-container">
+                    <div class="messages" id="frame-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>I can create example sentences using any word. Enter a word below to see it in context.</p>
+                            </div>
+                        </div>
+                        
+                        {% if framed_sentences and request.form.get('action') == 'frame' %}
+                        <div class="message user">
+                            <div class="message-content">
+                                <p>{{ request.form.get('word') }}</p>
+                            </div>
+                        </div>
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <p><strong>Example Sentences:</strong></p>
+                                <ul class="result-list examples">
+                                    {% for sentence in framed_sentences %}
+                                    <li>{{ sentence }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-area">
+                        <form method="post" class="input-form">
+                            <input type="text" name="word" placeholder="Enter a word..." required>
+                            <input type="hidden" name="action" value="frame">
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Word Categorizer Tab -->
+            <div id="categorize" class="tab-content">
+                <div class="chat-container">
+                    <div class="messages" id="categorize-messages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p>I can analyze a word and tell you its part of speech, categories, and domains. Enter a word below to categorize it.</p>
+                            </div>
+                        </div>
+                        
+                        {% if categories and request.form.get('action') == 'categorize' %}
+                        <div class="message user">
+                            <div class="message-content">
+                                <p>{{ request.form.get('word') }}</p>
+                            </div>
+                        </div>
+                        <div class="message assistant">
+                            <div class="message-content">
+                                {% if categories.message %}
+                                <p>{{ categories.message }}</p>
+                                {% else %}
+                                    {% if categories["Part of Speech"] %}
+                                    <p><strong>Part of Speech:</strong></p>
+                                    <ul class="result-list">
+                                        {% for pos in categories["Part of Speech"] %}
+                                        <li><span class="highlight">{{ pos }}</span></li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    
+                                    {% if categories["Categories"] %}
+                                    <p><strong>Categories:</strong></p>
+                                    <ul class="result-list">
+                                        {% for category in categories["Categories"] %}
+                                        <li>{{ category }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    
+                                    {% if categories["Domains"] %}
+                                    <p><strong>Domains:</strong></p>
+                                    <ul class="result-list">
+                                        {% for domain in categories["Domains"] %}
+                                        <li>{{ domain }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-area">
+                        <form method="post" class="input-form">
+                            <input type="text" name="word" placeholder="Enter a word..." required>
+                            <input type="hidden" name="action" value="categorize">
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabName, event) {
+            // Hide all tab contents
+            var tabContents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            // Remove active class from all nav items
+            var navItems = document.getElementsByClassName("nav-item");
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].classList.remove("active");
+            }
+            
+            // Show the selected tab content
+            document.getElementById(tabName).classList.add("active");
+            
+            // Update page title
+            var titles = {
+                "prediction": "Word Prediction",
+                "synonym": "Synonym Lookup",
+                "antonym": "Antonym Lookup",
+                "frame": "Sentence Framer",
+                "categorize": "Word Categorizer"
+            };
+            document.getElementById("page-title").innerText = titles[tabName];
+            
+            // Mark the clicked nav item as active
+            if (event) {
+                event.currentTarget.classList.add("active");
+            }
+        }
+    </script>
+</body>
+</html>
