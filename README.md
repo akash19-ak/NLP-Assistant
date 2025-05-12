@@ -146,5 +146,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 To complete the UI improvements, you'll need to create a folder for images:
 
 ```bash
-mkdir -p c:\Users\Palguna\Desktop\akash\static\images
+mkdir -p c:\Users\AKSH19\Desktop\akash\static\images
 ```
